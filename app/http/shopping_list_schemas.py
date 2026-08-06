@@ -1,3 +1,5 @@
+from math import isclose
+
 from pydantic import BaseModel, Field, model_validator
 
 from app.http.product_schemas import ProductResponse
@@ -9,14 +11,15 @@ class ShoppingNeedRequest(BaseModel):
 
 
 class OptimizationPreferencesRequest(BaseModel):
-    economic: float = Field(default=40, ge=0)
-    environmental: float = Field(default=40, ge=0)
-    social: float = Field(default=20, ge=0)
+    economic: float = Field(default=40, ge=0, le=100)
+    environmental: float = Field(default=40, ge=0, le=100)
+    social: float = Field(default=20, ge=0, le=100)
 
     @model_validator(mode="after")
-    def require_positive_weight(self) -> OptimizationPreferencesRequest:
-        if self.economic + self.environmental + self.social == 0:
-            raise ValueError("Al menos una prioridad debe ser mayor que cero.")
+    def require_complete_distribution(self) -> OptimizationPreferencesRequest:
+        total = self.economic + self.environmental + self.social
+        if not isclose(total, 100, abs_tol=0.001):
+            raise ValueError("Las prioridades deben sumar exactamente 100.")
         return self
 
 
