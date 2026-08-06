@@ -1,0 +1,8 @@
+[
+  {"category": "rice", "co2e_kg_per_kg": 2.7, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"},
+  {"category": "pasta", "co2e_kg_per_kg": 1.8, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"},
+  {"category": "milk_and_plant_drinks", "co2e_kg_per_kg": 1.4, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"},
+  {"category": "legumes", "co2e_kg_per_kg": 0.58, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"},
+  {"category": "coffee", "co2e_kg_per_kg": 10.5, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"},
+  {"category": "chocolate", "co2e_kg_per_kg": 16.8, "source": "AGRIBALYSE", "source_version": "3.2", "confidence": "medium"}
+]
