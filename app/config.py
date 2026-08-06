@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from os import getenv
 
+from dotenv import load_dotenv
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -14,6 +16,7 @@ class Settings:
 
 
 def load_settings() -> Settings:
+    load_dotenv()
     origins = tuple(
         origin.strip()
         for origin in getenv("CORS_ORIGINS", "http://localhost:5173").split(",")

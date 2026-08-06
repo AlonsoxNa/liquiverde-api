@@ -26,10 +26,6 @@ API de retail inteligente para analizar la sostenibilidad de productos y optimiz
 
 El proyecto fue desarrollado inicialmente en Windows con PowerShell y Python 3.14. La API y sus dependencias son multiplataforma; las diferencias de ejecución se limitan principalmente a la creación y activación del entorno virtual y a la copia del archivo de configuración.
 
-Antes de comenzar, abre una terminal en el directorio `liquiverde-api` y confirma que la versión requerida de Python está instalada. En Windows usa `py -3.14 --version`; en Linux y macOS usa `python3.14 --version`. El resultado debe indicar Python 3.14.x.
-
-Si el comando correspondiente no existe, instala Python 3.14 desde [python.org](https://www.python.org/downloads/) o mediante el gestor de versiones o paquetes del sistema. En algunas distribuciones Linux también será necesario instalar por separado el paquete correspondiente a `venv`.
-
 ## Instrucciones para ejecutar localmente
 
 ### Windows con PowerShell
@@ -60,10 +56,10 @@ python -m pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-5. Inicia Uvicorn, carga las variables de `.env` y activa la recarga automática cuando cambie el código:
+5. Inicia Uvicorn y activa la recarga automática cuando cambie el código:
 
 ```powershell
-python -m uvicorn app.main:app --reload --env-file .env
+python -m uvicorn app.main:app --reload
 ```
 
 ### Linux y macOS
@@ -95,10 +91,8 @@ cp .env.example .env
 5. Inicia la API con las variables de `.env` y recarga automática durante el desarrollo:
 
 ```bash
-python -m uvicorn app.main:app --reload --env-file .env
+python -m uvicorn app.main:app --reload
 ```
-
-En macOS, si Python se instaló con Homebrew, puede ser necesario usar la ruta o el alias mostrado al finalizar la instalación. En Linux, el nombre del ejecutable puede variar según la distribución o el gestor de versiones utilizado; al crear `.venv` debe apuntar siempre a Python 3.14.
 
 La API queda disponible en `http://localhost:8000` y su documentación interactiva en `http://localhost:8000/docs`. Para detener el servidor, presiona `Ctrl+C`.
 
@@ -121,7 +115,7 @@ source .venv/bin/activate
 Después, en cualquiera de los sistemas, inicia nuevamente el servidor:
 
 ```bash
-python -m uvicorn app.main:app --reload --env-file .env
+python -m uvicorn app.main:app --reload
 ```
 
 El comando `deactivate` permite salir del entorno virtual cuando termines de trabajar.
