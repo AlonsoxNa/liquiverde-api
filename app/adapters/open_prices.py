@@ -37,9 +37,12 @@ class OpenPricesClient:
                 timeout=self.timeout_seconds,
             )
             response.raise_for_status()
-            price = self._extract_latest_chilean_price(
-                response.json().get("items") or []
-            )
+            payload = response.json()
+            if not isinstance(payload, dict) or not isinstance(
+                payload.get("items"), list
+            ):
+                raise TypeError("Open Prices devolvió una respuesta inválida.")
+            price = self._extract_latest_chilean_price(payload["items"])
             self._log_request(
                 started_at,
                 response.status_code,
@@ -48,17 +51,18 @@ class OpenPricesClient:
             return price
         except (httpx.HTTPError, ValueError, TypeError) as error:
             self._log_request(started_at, 0, "transport_error")
-            raise OpenPricesServiceError(
-                "Open Prices no está disponible."
-            ) from error
+            raise OpenPricesServiceError("Open Prices no está disponible.") from error
 
     @staticmethod
     def _extract_latest_chilean_price(items: list[dict[str, Any]]) -> int | None:
         for item in items:
-            location = item.get("location") or {}
+            if not isinstance(item, dict):
+                continue
+            location = item.get("location")
             price = item.get("price")
             if (
                 item.get("currency") == "CLP"
+                and isinstance(location, dict)
                 and location.get("osm_address_country_code") == "CL"
                 and isinstance(price, int | float)
                 and not isinstance(price, bool)

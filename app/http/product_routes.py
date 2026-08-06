@@ -174,10 +174,7 @@ def create_product_router(
     return router
 
 
-def _enrich_with_price(
-    product: Product,
-    open_prices: OpenPricesClient,
-) -> Product:
+def _enrich_with_price(product: Product, open_prices: OpenPricesClient) -> Product:
     if product.external_provider == "local" or product.price_clp is not None:
         return product
     try:
