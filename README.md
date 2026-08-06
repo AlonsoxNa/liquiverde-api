@@ -135,6 +135,7 @@ El comando `deactivate` permite salir del entorno virtual cuando termines de tra
 | `DATABASE_URL`                 | Base SQLite                | `sqlite:///./liquiverde.db`                |
 | `CORS_ORIGINS`                 | Orígenes web permitidos    | `http://localhost:5173`                    |
 | `OPEN_FOOD_FACTS_BASE_URL`     | API de productos           | `https://world.openfoodfacts.org/api/v3.6` |
+| `OPEN_PRICES_BASE_URL`         | API de precios por GTIN    | `https://prices.openfoodfacts.org/api/v1`  |
 | `AGRIBALYSE_BASE_URL`          | Dataset ambiental de ADEME | API pública Data Fair                      |
 | `EXTERNAL_API_TIMEOUT_SECONDS` | Timeout por consulta       | `5`                                        |
 | `EXTERNAL_API_USER_AGENT`      | Identificación del cliente | Valor público de LiquiVerde                |
@@ -172,6 +173,14 @@ Se consulta exclusivamente cuando el usuario ingresa un GTIN válido que no exis
 
 Un producto encontrado se normaliza y persiste. Búsqueda textual, análisis, optimización, arranque y `/health` nunca consultan Open Food Facts. `404` significa que el producto no existe; timeout, `429` o errores del proveedor se traducen a un error controlado.
 
+#### Open Prices
+
+Después de obtener un producto externo, la API consulta su precio más reciente en Open Prices cuando todavía no existe un precio local. También reintenta el enriquecimiento si el usuario vuelve a consultar el mismo GTIN mientras el producto sigue sin precio.
+
+La consulta usa el GTIN original y los filtros `currency=CLP` y `order_by=-date`. Solo se acepta un valor positivo asociado a una ubicación chilena. Si no hay observaciones compatibles o el proveedor falla, el producto se conserva sin precio y el usuario puede completarlo desde la pantalla de análisis. Búsqueda textual, análisis, optimización, arranque y `/health` nunca consultan Open Prices.
+
+Cuando se obtiene un valor, el producto registra `open_food_facts` y `open_prices` como fuentes. Open Prices reúne observaciones comunitarias: el valor representa el precio publicado para ese producto, moneda, lugar y fecha, pero no garantiza disponibilidad ni vigencia en todos los comercios.
+
 #### AGRIBALYSE
 
 No se consulta durante el flujo web. Su única entrada es:
@@ -206,6 +215,7 @@ Todos usan GTIN-13 sintéticos con checksum válido. Los precios en CLP son valo
 - Origen y reciclabilidad afectan el score ambiental, pero no se convierten artificialmente en CO₂e.
 - Fairtrade, Rainforest Alliance y UTZ se reconocen como indicadores sociales. Ausencia de certificación no significa desempeño negativo.
 - Open Food Facts es comunitario y puede contener campos incompletos.
+- Open Prices tiene cobertura limitada en Chile y sus observaciones pueden quedar desactualizadas; por eso su ausencia nunca bloquea el flujo manual.
 - Un producto externo necesita precio, peso y categoría válida antes de participar en la optimización.
 - No se modelan inventario, tiendas, fechas, rutas ni disponibilidad.
 
