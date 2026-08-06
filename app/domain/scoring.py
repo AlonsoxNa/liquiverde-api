@@ -71,7 +71,9 @@ def analyze_sustainability(
         },
         reasons=reasons,
         data_sources=tuple(
-            dict.fromkeys([product.external_provider, environmental_factor.source])
+            dict.fromkeys(
+                [*product.external_provider.split("+"), environmental_factor.source]
+            )
         ),
         confidence=_confidence(product, environmental_factor),
         co2e_kg=co2e_kg,

@@ -7,9 +7,11 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.adapters.open_food_facts import ExternalServiceError, OpenFoodFactsClient
+from app.adapters.open_prices import OpenPricesClient, OpenPricesServiceError
 from app.adapters.product_repository import ProductRepository
 from app.config import Settings
 from app.domain.barcode import InvalidBarcodeError, normalize_barcode
+from app.domain.product import Product
 from app.domain.scoring import (
     analyze_sustainability,
     generic_environmental_factor,
@@ -33,6 +35,11 @@ def create_product_router(
     router = APIRouter(prefix="/api/v1/products", tags=["products"])
     open_food_facts = OpenFoodFactsClient(
         base_url=settings.open_food_facts_base_url,
+        timeout_seconds=settings.external_api_timeout_seconds,
+        user_agent=settings.external_api_user_agent,
+    )
+    open_prices = OpenPricesClient(
+        base_url=settings.open_prices_base_url,
         timeout_seconds=settings.external_api_timeout_seconds,
         user_agent=settings.external_api_user_agent,
     )
@@ -63,7 +70,10 @@ def create_product_router(
         repository = ProductRepository(session)
         existing_product = repository.find_by_barcode(barcode)
         if existing_product:
-            return ProductResponse.from_product(existing_product)
+            enriched_product = _enrich_with_price(existing_product, open_prices)
+            if enriched_product != existing_product:
+                enriched_product = repository.save_product(enriched_product)
+            return ProductResponse.from_product(enriched_product)
         try:
             external_product = open_food_facts.find_product(
                 barcode,
@@ -82,7 +92,8 @@ def create_product_router(
                 code="PRODUCT_NOT_FOUND",
                 message="No encontramos un producto con ese código de barras.",
             )
-        return ProductResponse.from_product(repository.save_product(external_product))
+        enriched_product = _enrich_with_price(external_product, open_prices)
+        return ProductResponse.from_product(repository.save_product(enriched_product))
 
     @router.get("/{product_id}/analysis", response_model=SustainabilityAnalysisResponse)
     def analyze_product(
@@ -161,3 +172,26 @@ def create_product_router(
         return ProductResponse.from_product(repository.save_product(updated_product))
 
     return router
+
+
+def _enrich_with_price(
+    product: Product,
+    open_prices: OpenPricesClient,
+) -> Product:
+    if product.external_provider == "local" or product.price_clp is not None:
+        return product
+    try:
+        price_clp = open_prices.find_latest_clp_price(product.barcode_raw)
+    except OpenPricesServiceError:
+        return product
+    if price_clp is None:
+        return product
+    providers = product.external_provider.split("+")
+    if "open_prices" not in providers:
+        providers.append("open_prices")
+    return replace(
+        product,
+        price_clp=price_clp,
+        external_provider="+".join(providers),
+        updated_at=datetime.now(UTC),
+    )
