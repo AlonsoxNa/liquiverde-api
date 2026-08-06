@@ -269,6 +269,8 @@ El segundo algoritmo es una mochila de elección múltiple con programación din
 
 Cada necesidad contiene una referencia, categoría y cantidad. Los candidatos son los productos completos de esa categoría. El algoritmo mantiene estados por costos alcanzables, descarta estados dominados y aplica este orden:
 
+Las prioridades económica, ambiental y social admiten valores entre 0 y 100 y deben sumar exactamente 100. La API rechaza cualquier otra distribución con `422 INVALID_REQUEST`; el algoritmo divide los valores por 100 antes de calcular la utilidad ponderada.
+
 1. mayor cantidad de categorías cubiertas;
 2. mayor utilidad según prioridades normalizadas;
 3. menor costo;
